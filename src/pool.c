@@ -37,10 +37,8 @@ int num_vertices = 0;
 GLfloat angle = 0.0, phi = 0.0, step = 0.0;
 GLuint model_view_location, projection_location, ctm_location;
 mat4 model_view, projection, ctm;
-int circle=1, move_down=0, forward=0, left=0, right=0;
 int stage = 0, direction =3, new_direction = -1, sol_count = 0, last_f = 0;
 vec4 old_a, old_e;
-char solution[60];
 
 vec4 cube_vertices[36] = {
 	{0.0,1.0,0.0,1.0},{0.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
@@ -71,7 +69,6 @@ void init(void)
 	vec4 vertices[num_vertices];
 	vec4 normals[num_vertices];
 	fill(maze,vertices,textures);
-	//vec4 colors[num_vertices];
 
 	/*int width = 800;
 	int height = 800;
@@ -103,22 +100,22 @@ void init(void)
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices)+ sizeof(textures)/* + sizeof(colors)*/, NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(normals), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(textures), textures); 
-	//glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors), colors);
+	//glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(textures), textures); 
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(normals), normals);
 
 	GLuint vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
-	/*GLuint vColor = glGetAttribLocation(program, "vColor");
-	  glEnableVertexAttribArray(vColor);
+	GLuint vNormal = glGetAttribLocation(program, "vNormal");
+	  glEnableVertexAttribArray(vNormal);
 	  glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
 	 
-	GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
+	/*GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
 	glEnableVertexAttribArray(vTexCoord);
-	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(colors)));
+	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(normals)));
 
 	GLuint texture_location = glGetUniformLocation(program, "texture");
 	glUniform1i(texture_location, 0);
