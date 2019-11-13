@@ -9,12 +9,12 @@ CP = -Wall
 CFLAGS = -I$(IDIR) -lXi -lXmu -lglut -lGLEW -lGLU -lm -lGL
 
 # header dependencies
-_DEPS = initShader.h matrixOperations.h
+_DEPS = initShader.h matrixOperations.h geometricShapes.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # object files
 ODIR = obj
-_OBJ = initShader.o matrixOperations.o
+_OBJ = initShader.o matrixOperations.o geometricShapes.c
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: pool

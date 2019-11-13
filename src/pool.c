@@ -25,8 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "matrixOperations.h"
-#include "mazeGenerator.h"
-#include "mazeSolver.h"
+#include "geometricShapes.h"
 
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 
@@ -57,149 +56,35 @@ vec4 cube_vertices[36] = {
 	{0.0,0.0,0.0,1.0},{0.0,0.0,-1.0,1.0},{1.0,0.0,-1.0,1.0},
 	{0.0,0.0,0.0,1.0},{1.0,0.0,-1.0,1.0},{1.0,0.0,0.0,1.0},
 };
-vec2 wall_tex_coords[36] = {
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-	{0.0,0.0},{0.0,0.5},{0.5,0.5},{0.0,0.0},{0.5,0.5},{0.5,0.0},
-};	
-vec2 post_tex_coords[36] = {
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-	{0.5,0.0},{0.5,0.5},{1.0,0.5},{0.5,0.0},{1.0,0.5},{1.0,0.0},
-};	
-vec2 floor_tex_coords[36] = {
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-	{0.0,0.5},{0.0,1.0},{0.5,1.0},{0.0,0.5},{0.5,1.0},{0.5,0.5},
-};	
 
-void makeWall(vec4 *vertices, vec2 *textures, int *v_index, int *t_index, int row, int col){
-	int i;
-	mat4 trans, scale, copy;
-	matrixTranslation((col*1)-4.0,0,row*-1,trans);
-	matrixScale(1.0,1.0,0.2,scale);
-	matrixMultiplication(trans,scale,copy);
-	vec4 temp;
-	for(i = 0; i<36; i++){
-		matrixVectorMultiplication(copy,cube_vertices[i],temp);
-		vectorCopy(temp, vertices[*v_index]);
-		textures[*t_index][0] = wall_tex_coords[i][0];
-		textures[*t_index][1] = wall_tex_coords[i][1];
-		(*v_index)++;
-		(*t_index)++;
-	}	
-}
+void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
+	
+}	
 
-void makeWallRotated(vec4 *vertices, vec2 *textures, int *v_index, int *t_index, int row, int col){
-	int i;
-	mat4 trans, scale, rotate, copy, temp1;
-	matrixTranslation((col*1)-3.8,0.0,row*-1,trans);
-	matrixRotateY(M_PI/2,rotate);
-	matrixMultiplication(trans,rotate,temp1);
-	matrixScale(1.0,1.0,0.2,scale);
-	matrixMultiplication(temp1,scale,copy);
-	vec4 temp;
-	for(i = 0; i<36; i++){
-		matrixVectorMultiplication(copy,cube_vertices[i],temp);
-		vectorCopy(temp, vertices[*v_index]);
-		textures[*t_index][0] = wall_tex_coords[i][0];
-		textures[*t_index][1] = wall_tex_coords[i][1];
-		(*v_index)++;
-		(*t_index)++;
-	}	
-}
-
-void makePost(vec4 *vertices, vec2 *textures, int *v_index, int *t_index, int row, int col){
-	int i;
-	mat4 trans, scale, copy;
-	matrixTranslation((col*1)-4.05,0.0,(row*-1)+0.05,trans);
-	matrixScale(0.3,1.1,0.3,scale);
-	matrixMultiplication(trans,scale,copy);
-	vec4 temp;
-	for(i = 0; i<36; i++){
-		matrixVectorMultiplication(copy,cube_vertices[i],temp);
-		vectorCopy(temp, vertices[*v_index]);
-		textures[*t_index][0] = post_tex_coords[i][0];
-		textures[*t_index][1] = post_tex_coords[i][1];
-		(*v_index)++;
-		(*t_index)++;
-	}	
-
-}
-void makeFloor(vec4 *vertices, vec2 *textures, int *v_index, int *t_index){
-	int i;
-	mat4 trans, scale, copy;
-	matrixTranslation(-6,-0.25,2.0,trans);
-	matrixScale(12.0,0.25,12.0,scale);
-	matrixMultiplication(trans,scale,copy);
-	vec4 temp;
-	for(i = 0; i<36; i++){
-		matrixVectorMultiplication(copy,cube_vertices[i],temp);
-		vectorCopy(temp, vertices[*v_index]);
-		textures[*t_index][0] = floor_tex_coords[i][0];
-		textures[*t_index][1] = floor_tex_coords[i][1];
-		(*v_index)++;
-		(*t_index)++;
-	}	
-
-}
-
-void fill(int maze[][17], vec4 *vertices, vec2 *textures) {
-	int v_index = 0, t_index = 0, row = 0, col=0, i, j;
-	for(i=0;i<17;i++){
-		for(j=0;j<17;j++){
-			int square = maze[i][j];
-			//fprintf(stderr,"val: %d row: %d col: %d\n", square, i/2, j/2);
-			if(square == 0) continue;
-			if(square == 2) {
-				makePost(vertices,textures,&v_index,&t_index,i/2,j/2);
-			} if(square == 1){
-				makeWall(vertices,textures,&v_index,&t_index,i/2,j/2);
-				col++;
-			} if(square == 3){
-				makeWallRotated(vertices,textures,&v_index,&t_index,i/2,j/2);
-				col++;
-			} if(col == 8){
-				row++;
-				col = 0;
-			}
-		}
-	}
-	makeFloor(vertices,textures,&v_index,&t_index);
+void fill(vec4 *vertices, vec2 *textures) {
+	makeCube(vertices,textures,&v_index,&n_index);
 }
 
 void init(void)
 {
-	int maze[17][17];
-	makeMaze(maze);
-	solveMaze(maze, solution);
 	num_vertices = 5796;
 	vec4 vertices[num_vertices];
-	vec2 textures[num_vertices];
+	vec4 normals[num_vertices];
 	fill(maze,vertices,textures);
 	//vec4 colors[num_vertices];
 
-	int width = 800;
+	/*int width = 800;
 	int height = 800;
 	GLubyte my_texels[width][height][3];
 
 	FILE *fp = fopen("p2texture04.raw", "r");
 	fread(my_texels, width * height * 3, 1, fp);
 	fclose(fp);
-
+	*/
 	GLuint program = initShader("vshader_ctm.glsl", "fshader.glsl");
 	glUseProgram(program);
 
-	GLuint mytex[1];
+	/*GLuint mytex[1];
 	glGenTextures(1, mytex);
 	glBindTexture(GL_TEXTURE_2D, mytex[0]);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, my_texels);
@@ -210,7 +95,7 @@ void init(void)
 
 	int param;
 	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
-
+	*/
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -230,14 +115,14 @@ void init(void)
 	/*GLuint vColor = glGetAttribLocation(program, "vColor");
 	  glEnableVertexAttribArray(vColor);
 	  glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
-	 */
+	 
 	GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
 	glEnableVertexAttribArray(vTexCoord);
-	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(colors)*/));
+	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(colors)));
 
 	GLuint texture_location = glGetUniformLocation(program, "texture");
 	glUniform1i(texture_location, 0);
-
+	*/
 	identityMatrix(model_view);
 	vec4 e = {0,5.0,4.0,0.0};
 	vec4 a = {0.0,0.0,-4,0.0};
