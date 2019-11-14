@@ -114,11 +114,10 @@ void cylinder(vec4 *vertices, vec4 *colors, int num_vertices) {
 }
 
 
-void sphere(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change) {
+void sphere(vec4 *vertices, vec4 *colors, vec4 center, GLfloat r, int num_vertices, int degree_change) {
         GLfloat theta = ((90.0/degree_change)*M_PI)/180;
         GLfloat phi = ((90.0/degree_change)*M_PI)/180;
         GLfloat angleY = M_PI;
-        GLfloat r = 1.0;
         vec4 ring1[(degree_change*4)+1];
         generateRingSphere(angleY, theta, r, ring1);
         int i, j;

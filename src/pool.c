@@ -56,7 +56,31 @@ vec4 cube_vertices[36] = {
 };
 
 void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
-	
+	int i;
+	mat4 trans, scale, copy;
+	matrixTranslation(-0.5,-1.0,0.5,trans);
+	matrixScale(20.0,20.0,0.1,scale);
+	matrixMultiplication(trans,scale,copy);
+	vec4 temp;
+	for(i = 0; i<12; i+=3){
+		matrixVectorMultiplication(copy,cube_vertices[i],temp);
+		vectorCopy(temp, vertices[*v_index]);
+		matrixVectorMultiplication(copy,cube_vertices[i+1],temp);
+		vectorCopy(temp, vertices[(*v_index)+1]);
+		matrixVectorMultiplication(copy,cube_vertices[i+2],temp);
+		vectorCopy(temp, vertices[(*v_index)+2]);
+		
+		vec4 t1,t2,t3;
+		vectorSubtraction(cube_vertices[i],cube_vertices[i+1],t1);
+		vectorSubtraction(cube_vertices[i+2],cube_vertices[i],t2);
+		vectorDotProduct(t1,t2,t3);
+		vectorCopy(t3, normals[*n_index]);
+		vectorCopy(t3, normals[(*n_index)+1]);
+		vectorCopy(t3, normals[(*n_index)+2]);
+		(*v_index)+=3;
+		(*n_index)+=3;
+
+	}
 }	
 
 void fill(vec4 *vertices, vec2 *textures) {
@@ -65,34 +89,34 @@ void fill(vec4 *vertices, vec2 *textures) {
 
 void init(void)
 {
-	num_vertices = 5796;
+	num_vertices = 2*(pow(15,2)*48) + 36;
 	vec4 vertices[num_vertices];
 	vec4 normals[num_vertices];
 	fill(maze,vertices,textures);
 
 	/*int width = 800;
-	int height = 800;
-	GLubyte my_texels[width][height][3];
+	  int height = 800;
+	  GLubyte my_texels[width][height][3];
 
-	FILE *fp = fopen("p2texture04.raw", "r");
-	fread(my_texels, width * height * 3, 1, fp);
-	fclose(fp);
-	*/
+	  FILE *fp = fopen("p2texture04.raw", "r");
+	  fread(my_texels, width * height * 3, 1, fp);
+	  fclose(fp);
+	  */
 	GLuint program = initShader("vshader_ctm.glsl", "fshader.glsl");
 	glUseProgram(program);
 
 	/*GLuint mytex[1];
-	glGenTextures(1, mytex);
-	glBindTexture(GL_TEXTURE_2D, mytex[0]);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, my_texels);
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+	  glGenTextures(1, mytex);
+	  glBindTexture(GL_TEXTURE_2D, mytex[0]);
+	  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, my_texels);
+	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
+	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
+	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 
-	int param;
-	glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
-	*/
+	  int param;
+	  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
+	  */
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -110,16 +134,16 @@ void init(void)
 	glVertexAttribPointer(vPosition, 4, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 
 	GLuint vNormal = glGetAttribLocation(program, "vNormal");
-	  glEnableVertexAttribArray(vNormal);
-	  glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
-	 
-	/*GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
-	glEnableVertexAttribArray(vTexCoord);
-	glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(normals)));
+	glEnableVertexAttribArray(vNormal);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
 
-	GLuint texture_location = glGetUniformLocation(program, "texture");
-	glUniform1i(texture_location, 0);
-	*/
+	/*GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
+	  glEnableVertexAttribArray(vTexCoord);
+	  glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices)/* + sizeof(normals)));
+
+	  GLuint texture_location = glGetUniformLocation(program, "texture");
+	  glUniform1i(texture_location, 0);
+	  */
 	identityMatrix(model_view);
 	vec4 e = {0,5.0,4.0,0.0};
 	vec4 a = {0.0,0.0,-4,0.0};
@@ -175,186 +199,6 @@ void keyboard(unsigned char key, int mousex, int mousey)
 }
 
 void idle(void) {
-	if(circle){
-		GLfloat x = -sin(angle) * 8;
-		GLfloat z = -4 + cos(angle) * 8;
-		vec4 e = {x,5.0,z,0.0};
-		vec4 a = {0.0,0.0,-4,0.0};
-		vec4 vup = {0.0,1.0,0.0,0.0};
-		lookAt(e,a,vup,model_view);
-		angle+=0.1;
-		if(angle > M_PI*2){
-			circle = 0;
-			move_down = 1;
-		}	
-	} else if(move_down){
-		if(stage == 0){
-			GLfloat x = -sin(angle) * 8;
-			GLfloat z = -4 + cos(angle) * 8;
-			vec4 e = {x,5.0,z,0.0};
-			vec4 a = {0.0,0.0,-4,0.0};
-			vec4 vup = {0.0,1.0,0.0,0.0};
-			lookAt(e,a,vup,model_view);
-			angle+=0.001;
-			if(z <= -0.5 ){
-				stage=1;
-				angle = M_PI;
-			}
-		}else{		
-			GLfloat ex = 2.6*cos(angle) - 4.5;
-			GLfloat ey = 3.4*sin(angle) + 4.0;
-			vec4 e = {ex,ey,-0.5,0.0};
-			GLfloat ax = 3.5*cos(angle)*cos(phi);
-			GLfloat ay = 0.6 + 0.6*cos(angle)*sin(phi);
-			GLfloat az = -4 - 3.5 * sin(angle);
-			vec4 a = {ax,ay,az,0.0};
-			vec4 vup = {0.0,1.0,0.0,0.0};
-			lookAt(e,a,vup,model_view);
-			angle+=0.005;
-			phi+=0.005;
-			if(angle > (3*M_PI)/2){//ex >= -4.52 || ey <= 0.75 ){
-				move_down=0;
-				vec4 e = {-4.5,0.6,-0.5,0.0};
-				vec4 a = {-3.5,0.6,-0.5,0.0};
-				vec4 vup = {0.0,1.0,0.0,0.0};
-				lookAt(e,a,vup,model_view);	
-				vec4 lrb = {-0.4,0.4,-0.4,0.0};
-				vec4 tnf = {0.4,-0.5,-9,0.0};
-				frustum(lrb,tnf,projection);
-				vectorCopy(e,old_e);
-				vectorCopy(a,old_a);
-			}
-		}
-	} else if(forward){
-		vec4 e_move, a_move;
-		if(direction == 3){
-			vec4 e_point = {old_e[0]+1,0.6,old_e[2],0.0};
-			vec4 a_point = {old_a[0]+1,0.6,old_a[2],0.0};
-			vectorSubtraction(e_point,old_e,e_move);
-			vectorSubtraction(a_point,old_a,a_move);
-		}else if(direction == 2){
-			vec4 e_point = {old_e[0],0.6,old_e[2]-1,0.0};
-			vec4 a_point = {old_a[0],0.6,old_a[2]-1,0.0};
-			vectorSubtraction(e_point,old_e,e_move);
-			vectorSubtraction(a_point,old_a,a_move);
-		}else if(direction == 1){
-			vec4 e_point = {old_e[0]-1,0.6,old_e[2],0.0};
-			vec4 a_point = {old_a[0]-1,0.6,old_a[2],0.0};
-			vectorSubtraction(e_point,old_e,e_move);
-			vectorSubtraction(a_point,old_a,a_move);
-		}else{
-			vec4 e_point = {old_e[0],0.6,old_e[2]+1,0.0};
-			vec4 a_point = {old_a[0],0.6,old_a[2]+1,0.0};
-			vectorSubtraction(e_point,old_e,e_move);
-			vectorSubtraction(a_point,old_a,a_move);
-		}
-		vectorScalarMultiplication(e_move,step,e_move);
-		vectorScalarMultiplication(a_move,step,a_move);
-		vectorAddition(old_e,e_move,e_move);
-		vectorAddition(old_a,a_move,a_move);
-		vec4 vup = {0,1,0,0};
-		lookAt(e_move,a_move,vup,model_view);
-		//printVector(a_move);
-		step += 0.002;
-		if(step > 1.0){
-			vectorCopy(e_move, old_e);
-			vectorCopy(a_move, old_a);
-			forward = 0;
-			step = 0.0;
-		}
-	} else if(right){
-			GLfloat ax,az;
-			if(direction == 2){
-				ax = sin(angle) + old_e[0];
-				az = -cos(angle) + old_e[2];
-				new_direction = 3;
-			}else if(direction == 1){
-				ax = cos(angle) + old_e[0];
-				az = -sin(angle) + old_e[2];
-				new_direction = 2;
-			}else if(direction == 3){
-				ax = cos(angle) + old_e[0];
-				az = sin(angle) + old_e[2];
-				new_direction = 0;
-			}else{
-				ax = -sin(angle) + old_e[0];
-				az = cos(angle) + old_e[2];
-				new_direction = 1;
-			}
-			vec4 a = {ax,0.6,az,0.0};
-			vec4 vup = {0.0,1.0,0.0,0.0};
-			lookAt(old_e,a,vup,model_view);
-			angle+=0.002;
-			if(angle > M_PI/2){
-				//vec4 e = {-4.5,0.6,-0.5,0.0};
-				//vec4 a = {-3.5,0.6,-0.5,0.0};
-				//vec4 vup = {0.0,1.0,0.0,0.0};
-				//lookAt(e,a,vup,model_view);	
-				right = 0;
-				forward = 1;
-				direction = new_direction;
-				//vectorCopy(e,old_e);
-				vectorCopy(a,old_a);
-			}
-	} else if(left){
-			GLfloat ax,az;
-			if(direction == 2){
-				ax = -sin(angle) + old_e[0];
-				az = cos(angle) + old_e[2];
-				new_direction = 1;
-			}else if(direction == 1){
-				ax = cos(angle) + old_e[0];
-				az = sin(angle) + old_e[2];
-				new_direction = 0;
-			}else if(direction == 3){
-				ax = cos(angle) + old_e[0];
-				az = -sin(angle) + old_e[2];
-				new_direction = 2;
-			}else{
-				ax = sin(angle) + old_e[0];
-				az = cos(angle) + old_e[2];
-				new_direction = 3;
-			}
-			vec4 a = {ax,0.6,az,0.0};
-			vec4 vup = {0.0,1.0,0.0,0.0};
-			lookAt(old_e,a,vup,model_view);
-			angle+=0.002;
-			if(angle > M_PI/2){
-				//vec4 e = {-4.5,0.6,-0.5,0.0};
-				//vec4 a = {-3.5,0.6,-0.5,0.0};
-				//vec4 vup = {0.0,1.0,0.0,0.0};
-				//lookAt(e,a,vup,model_view);	
-				left = 0;
-				forward=1;
-				direction = new_direction;
-				//vectorCopy(e,old_e);
-				vectorCopy(a,old_a);
-			}
-	} else{
-		if(sol_count < 60){
-			char c = solution[sol_count];
-			angle = 0;
-			if( c == '\0'){
-				sol_count = 60;
-				return;
-			}else if(c == 'F'){
-				if(last_f){
-					last_f = 0;
-					sol_count++;
-					return;
-				}
-				forward = 1;
-				last_f = 1;
-			}else if(c == 'R'){
-				right = 1;
-				last_f =1;
-			}else if(c == 'L'){
-				left = 1;
-				last_f=1;
-			}
-			sol_count++;
-		}			
-	}
 	glutPostRedisplay();
 }
 
@@ -364,7 +208,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(512, 512);
 	glutInitWindowPosition(100,100);
-	glutCreateWindow("Maze");
+	glutCreateWindow("Pool");
 	glewInit();
 	init();
 	glutDisplayFunc(display);
