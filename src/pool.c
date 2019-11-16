@@ -41,28 +41,30 @@ typedef struct {
 } material;
 
 material ball_materials[5] = {
-	{{1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
-	{{0.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
-	{{0.0, 0.0, 1.0, 1.0}, {0.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
-	{{1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
-	{{1.0, 0.5, 0.0, 1.0}, {1.0, 0.5, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40}};
+	{{1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
+	{{0.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
+	{{0.0, 0.0, 1.0, 1.0}, {0.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
+	{{1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
+	{{1.0, 0.5, 0.0, 1.0}, {1.0, 0.5, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10}};
 
-material other_materials[2] = {
-	{{0,0.4,0.0,1.0},{0,0.4,0,1.0},{1.0,1.0,1.0,1.0},3},
-	{{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},100}
+material other_materials[3] = {
+	{{0,0.4,0.0,1.0},{0,0.4,0,1.0},{1.0,1.0,1.0,1.0},1},
+	{{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},10},
+	{{0,0.35,0.0,1.0},{0.0,0,0.0,1.0},{1.0,1.0,1.0,1.0},100}
 };
 
 vec4 light_diffuse = {1.0,1.0,1.0,1.0};
 vec4 light_specular = {1.0,1.0,1.0,1.0};
 vec4 light_ambient = {0.3, 0.3, 0.3, 1.0};
 GLfloat attenuation_constant = 1.0, attenuation_linear=1.0, attenuation_quadratic=0.5, shininess=1.0;
-GLuint att_const_location, att_lin_location, att_quad_location, shininess_location;
+GLuint att_const_location, att_lin_location, att_quad_location, shininess_location, shadow_location;
 GLuint amb_prod_location, diff_prod_location, spec_prod_location;
 
 int num_vertices = 0;
 GLfloat angle = 0.0, phi = 0.0, step = 0.0;
 GLuint model_view_location, projection_location, ctm_location, light_location;
 mat4 model_view, projection, ctm;
+mat4 ball_ctms[5];
 vec4 old_a, old_e;
 vec4 lrb, tnf;
 vec4 light_position = {0,3,0,1.0};
@@ -194,13 +196,16 @@ void init(void)
 	vec4 a = {0.0,0.0,0,0.0};
 	vec4 vup = {0.0,1.0,0.0,0.0};
 	lookAt(e,a,vup,model_view);
-	
+
 	identityMatrix(projection);
 	makeVector(-1.5,1.5,-2,0,lrb);
 	makeVector(2,-1,-8,0,tnf);
 	frustum(lrb,tnf,projection);
 	identityMatrix(ctm);
-	
+	int i;
+	for(i=0;i<5;i++){
+		identityMatrix(ball_ctms[i]);
+	}
 	model_view_location = glGetUniformLocation(program, "model_view");
 	projection_location = glGetUniformLocation(program, "projection");
 	ctm_location = glGetUniformLocation(program, "ctm");
@@ -209,6 +214,7 @@ void init(void)
 	att_lin_location = glGetUniformLocation(program, "attenuation_linear");
 	att_quad_location = glGetUniformLocation(program, "attenuation_quadratic");
 	shininess_location = glGetUniformLocation(program, "shininess");
+	shadow_location = glGetUniformLocation(program, "isShadow");
 	amb_prod_location = glGetUniformLocation(program, "ambient_product");
 	diff_prod_location = glGetUniformLocation(program, "diffuse_product");
 	spec_prod_location = glGetUniformLocation(program, "specular_product");
@@ -225,13 +231,13 @@ void display(void)
 
 	glPolygonMode(GL_FRONT, GL_FILL);
 	glPolygonMode(GL_BACK, GL_LINE);
-		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ctm);
-		glUniformMatrix4fv(model_view_location, 1, GL_FALSE, model_view);
-		glUniformMatrix4fv(projection_location, 1, GL_FALSE, projection);	
-		glUniform4fv(light_location, 1, light_position);
-		glUniform1fv(att_const_location, 1, (GLfloat *) &attenuation_constant);
-		glUniform1fv(att_lin_location, 1, (GLfloat *) &attenuation_linear);
-		glUniform1fv(att_quad_location, 1, (GLfloat *) &attenuation_quadratic);
+	glUniformMatrix4fv(model_view_location, 1, GL_FALSE, model_view);
+	glUniformMatrix4fv(projection_location, 1, GL_FALSE, projection);	
+	glUniform4fv(light_location, 1, light_position);
+	glUniform1fv(att_const_location, 1, (GLfloat *) &attenuation_constant);
+	glUniform1fv(att_lin_location, 1, (GLfloat *) &attenuation_linear);
+	glUniform1fv(att_quad_location, 1, (GLfloat *) &attenuation_quadratic);
+	glUniform1i(shadow_location, 0);
 	int i;
 	for(i=0;i<2;i++){
 		glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[i].shininess);
@@ -245,18 +251,37 @@ void display(void)
 		glUniform4fv(spec_prod_location, 1, spec_product);
 
 		if(i==0){ 
+			mat4 temp;
+			identityMatrix(temp);
+			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}else{
 			glDrawArrays(GL_TRIANGLES, 36, 10800);
+			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ctm);
 		}
 	}
 	for(i=0;i<5;i++){
+		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
 		glUniform1fv(shininess_location, 1, (GLfloat *) &ball_materials[i].shininess);
 
 		vec4 amb_product, diff_product, spec_product;
 		vectorProduct(ball_materials[i].reflect_ambient, light_ambient, amb_product);
 		vectorProduct(ball_materials[i].reflect_diffuse, light_diffuse, diff_product);
 		vectorProduct(ball_materials[i].reflect_specular, light_specular, spec_product);
+		glUniform4fv(amb_prod_location, 1, amb_product);
+		glUniform4fv(diff_prod_location, 1, diff_product);
+		glUniform4fv(spec_prod_location, 1, spec_product);
+		glDrawArrays(GL_TRIANGLES, (i*10800)+10836, 10800);
+	}
+	glUniform1i(shadow_location, 1);
+	for(i=0;i<5;i++){
+		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
+		glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[2].shininess);
+
+		vec4 amb_product, diff_product, spec_product;
+		vectorProduct(other_materials[2].reflect_ambient, light_ambient, amb_product);
+		vectorProduct(other_materials[2].reflect_diffuse, light_diffuse, diff_product);
+		vectorProduct(other_materials[2].reflect_specular, light_specular, spec_product);
 		glUniform4fv(amb_prod_location, 1, amb_product);
 		glUniform4fv(diff_prod_location, 1, diff_product);
 		glUniform4fv(spec_prod_location, 1, spec_product);
@@ -302,6 +327,19 @@ void mouse(int button, int state, int x, int y) {
 }
 
 void idle(void) {
+	mat4 spin, copy;
+	matrixRotateY(0.0075,spin);
+	matrixMultiplication(spin,ball_ctms[1],copy);
+	matrixCopy(copy,ball_ctms[1]);
+	matrixRotateY(0.01,spin);
+	matrixMultiplication(spin,ball_ctms[2],copy);
+	matrixCopy(copy,ball_ctms[2]);
+	matrixRotateY(0.0115,spin);
+	matrixMultiplication(spin,ball_ctms[3],copy);
+	matrixCopy(copy,ball_ctms[3]);
+	matrixRotateY(0.014,spin);
+	matrixMultiplication(spin,ball_ctms[4],copy);
+	matrixCopy(copy,ball_ctms[4]);
 	glutPostRedisplay();
 }
 
