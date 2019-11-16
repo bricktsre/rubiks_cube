@@ -41,11 +41,11 @@ typedef struct {
 } material;
 
 material ball_materials[5] = {
-	{{1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
-	{{0.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
-	{{0.0, 0.0, 1.0, 1.0}, {0.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
-	{{1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10},
-	{{1.0, 0.5, 0.0, 1.0}, {1.0, 0.5, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 10}};
+	{{1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
+	{{0.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
+	{{0.0, 0.0, 1.0, 1.0}, {0.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
+	{{1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40},
+	{{1.0, 0.5, 0.0, 1.0}, {1.0, 0.5, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 40}};
 
 material other_materials[2] = {
 	{{0,0.4,0.0,1.0},{0,0.4,0,1.0},{1.0,1.0,1.0,1.0},3},
@@ -63,8 +63,8 @@ int num_vertices = 0;
 GLfloat angle = 0.0, phi = 0.0, step = 0.0;
 GLuint model_view_location, projection_location, ctm_location, light_location;
 mat4 model_view, projection, ctm;
-int stage = 0, direction =3, new_direction = -1, sol_count = 0, last_f = 0;
 vec4 old_a, old_e;
+vec4 lrb, tnf;
 vec4 light_position = {0,3,0,1.0};
 
 vec4 cube_vertices[36] = {
@@ -119,7 +119,7 @@ void fill(vec4 *vertices, vec4 *normals) {
 	int v_index = 0, n_index = 0;
 	makeCube(vertices,normals,&v_index,&n_index);
 	vec4 p1 = {0,3,0,1};
-	sphereWithNormals(vertices,normals,p1,0.3,&v_index,&n_index,15);
+	sphereWithNormals(vertices,normals,p1,0.2,&v_index,&n_index,15);
 	vec4 p2 = {0,0.5,0,1};
 	sphereWithNormals(vertices,normals,p2,0.5,&v_index,&n_index,15);
 	vec4 p3 = {1,0.5,0,1};
@@ -190,14 +190,14 @@ void init(void)
 	  glUniform1i(texture_location, 0);
 	 */
 	identityMatrix(model_view);
-	vec4 e = {0,3.0,2.0,0.0};
+	vec4 e = {0,5.0,2.0,0.0};
 	vec4 a = {0.0,0.0,0,0.0};
 	vec4 vup = {0.0,1.0,0.0,0.0};
 	lookAt(e,a,vup,model_view);
 	
 	identityMatrix(projection);
-	vec4 lrb = {-2,2,-2,0.0};
-	vec4 tnf = {2,-1.0,-6,0.0};
+	makeVector(-1.5,1.5,-2,0,lrb);
+	makeVector(2,-1,-8,0,tnf);
 	frustum(lrb,tnf,projection);
 	identityMatrix(ctm);
 	
@@ -283,6 +283,24 @@ void keyboard(unsigned char key, int mousex, int mousey)
 	//glutPostRedisplay();
 }
 
+void mouse(int button, int state, int x, int y) {
+	if( button == 3){
+		lrb[0] *= 1/1.02;
+		lrb[1] *= 1/1.02;
+		lrb[2] *= 1/1.02;
+		tnf[0] *= 1/1.02;
+		frustum(lrb,tnf,projection);
+		glutPostRedisplay();
+	}else if( button == 4){
+		lrb[0] *= 1.02;
+		lrb[1] *= 1.02;
+		lrb[2] *= 1.02;
+		tnf[0] *= 1.02;
+		frustum(lrb,tnf,projection);
+		glutPostRedisplay();
+	}
+}
+
 void idle(void) {
 	glutPostRedisplay();
 }
@@ -298,6 +316,7 @@ int main(int argc, char **argv)
 	init();
 	glutDisplayFunc(display);
 	glutKeyboardFunc(keyboard);
+	glutMouseFunc(mouse);
 	glutIdleFunc(idle);
 	glutMainLoop();
 	return 0;

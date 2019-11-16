@@ -158,18 +158,18 @@ void sphereWithNormals(vec4 *vertices, vec4 *normals, vec4 center, GLfloat r, in
                 generateRingSphere(angleY, theta, r, ring2);
                 for(j=0;j<(4*degree_change);j++){
                         int row_points = degree_change*4*6;
-			matrixVectorMultiplication(trans, ring2[j], vertices[*n_index]);
-                	vectorSubtraction(vertices[*n_index],center,normals[*n_index]);
-                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*n_index)+1]);
-                	vectorSubtraction(vertices[(*n_index)+1],center,normals[(*n_index)+1]);
-                        matrixVectorMultiplication(trans, ring1[j], vertices[(*n_index)+2]);
-                	vectorSubtraction(vertices[(*n_index)+2],center,normals[(*n_index)+2]);
-                        matrixVectorMultiplication(trans, ring2[j], vertices[(*n_index)+3]);
-                	vectorSubtraction(vertices[(*n_index)+3],center,normals[(*n_index)+3]);
-                        matrixVectorMultiplication(trans, ring2[j+1], vertices[(*n_index)+4]);
-                	vectorSubtraction(vertices[(*n_index)+4],center,normals[(*n_index)+4]);
-                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*n_index)+5]);
-                	vectorSubtraction(vertices[(*n_index)+5],center,normals[(*n_index)+5]);
+			matrixVectorMultiplication(trans, ring2[j], vertices[*v_index]);
+                	vectorSubtraction(vertices[*v_index],center,normals[*n_index]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*v_index)+1]);
+                	vectorSubtraction(vertices[(*v_index)+1],center,normals[(*n_index)+1]);
+                        matrixVectorMultiplication(trans, ring1[j], vertices[(*v_index)+2]);
+                	vectorSubtraction(vertices[(*v_index)+2],center,normals[(*n_index)+2]);
+                        matrixVectorMultiplication(trans, ring2[j], vertices[(*v_index)+3]);
+                	vectorSubtraction(vertices[(*v_index)+3],center,normals[(*n_index)+3]);
+                        matrixVectorMultiplication(trans, ring2[j+1], vertices[(*v_index)+4]);
+                	vectorSubtraction(vertices[(*v_index)+4],center,normals[(*n_index)+4]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*v_index)+5]);
+                	vectorSubtraction(vertices[(*v_index)+5],center,normals[(*n_index)+5]);
 
 			(*n_index)+=6;
                 	(*v_index)+=6;
