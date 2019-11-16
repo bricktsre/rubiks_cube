@@ -57,6 +57,13 @@ void vectorCopy(vec4 a, vec4 v) {
 	v[3] = a[3];
 }
 
+void vectorProduct(vec4 a, vec4 b, vec4 v){
+	v[0] = a[0] * b[0];
+	v[1] = a[1] * b[1];
+	v[2] = a[2] * b[2];
+	v[3] = a[3] * b[3];
+}
+
 void printMatrix(mat4 a) {
 	printf("%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n%.2f, %.2f, %.2f, %.2f\n\n",a[0],a[4],a[8],a[12],a[1],a[5],a[9],a[13],a[2],a[6],a[10],a[14],a[3],a[7],a[11],a[15]);
 }

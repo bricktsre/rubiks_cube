@@ -14,7 +14,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # object files
 ODIR = obj
-_OBJ = initShader.o matrixOperations.o geometricShapes.c
+_OBJ = initShader.o matrixOperations.o geometricShapes.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: pool
