@@ -120,7 +120,7 @@ void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 void fill(vec4 *vertices, vec4 *normals) {
 	int v_index = 0, n_index = 0;
 	makeCube(vertices,normals,&v_index,&n_index);
-	vec4 p1 = {0,3,0,1};
+	vec4 p1 = {0,0,0,1};
 	sphereWithNormals(vertices,normals,p1,0.2,&v_index,&n_index,15);
 	vec4 p2 = {0,0.5,0,1};
 	sphereWithNormals(vertices,normals,p2,0.5,&v_index,&n_index,15);
@@ -201,7 +201,7 @@ void init(void)
 	makeVector(-1.5,1.5,-2,0,lrb);
 	makeVector(2,-1,-8,0,tnf);
 	frustum(lrb,tnf,projection);
-	identityMatrix(ctm);
+	matrixTranslation(light_position[0],light_position[1],light_position[2],ctm);
 	int i;
 	for(i=0;i<5;i++){
 		identityMatrix(ball_ctms[i]);
@@ -256,8 +256,8 @@ void display(void)
 			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}else{
-			glDrawArrays(GL_TRIANGLES, 36, 10800);
 			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ctm);
+			glDrawArrays(GL_TRIANGLES, 36, 10800);
 		}
 	}
 	for(i=0;i<5;i++){
@@ -294,18 +294,33 @@ void keyboard(unsigned char key, int mousex, int mousey)
 {
 	if(key == 'q')
 		exit(0);
-	if(key == 'c'){
-		GLfloat i,j,k;
-		scanf("%f %f %f", &i,&j,&k);
-		vec4 lrb = {i,j,k,0.0};
-		scanf("%f %f %f", &i,&j,&k);
-		vec4 tnf = {i,j,k,0.0};
-		identityMatrix(projection);
-		frustum(lrb,tnf,projection);
-		glutPostRedisplay();
+	else if(key == 'j'){
+		vec4 temp = {-0.1,0,0,0};
+		vectorAddition(light_position, temp, light_position);
+	}else if(key == 'l'){
+		vec4 temp = {0.1,0,0,0};
+		vectorAddition(light_position, temp, light_position);
 	}
-
-	//glutPostRedisplay();
+	else if(key == 'i'){
+		vec4 temp = {0,0,-0.1,0};
+		vectorAddition(light_position, temp, light_position);
+	}
+	else if(key == 'k'){
+		vec4 temp = {0,0,0.1,0};
+		vectorAddition(light_position, temp, light_position);
+	}
+	else if(key == 'u'){
+		vec4 temp = {0,0.1,0,0};
+		vectorAddition(light_position, temp, light_position);
+	}
+	else if(key == 'o'){
+		vec4 temp = {0,-0.1,0,0};
+		vectorAddition(light_position, temp, light_position);
+	}
+	mat4 trans;
+	matrixTranslation(light_position[0],light_position[1],light_position[2],trans);
+	matrixCopy(trans,ctm);
+	glutPostRedisplay();
 }
 
 void mouse(int button, int state, int x, int y) {
@@ -347,7 +362,7 @@ int main(int argc, char **argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-	glutInitWindowSize(768, 768);
+	glutInitWindowSize(512,512);
 	glutInitWindowPosition(100,100);
 	glutCreateWindow("Pool");
 	glewInit();
