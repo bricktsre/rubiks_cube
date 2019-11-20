@@ -19,9 +19,9 @@ void main()
 {
 	if(isShadow == 1){
 		vec4 tempV = ctm * vPosition;
-		float x = (light_position[0]-light_position[1])*((light_position[0]-tempV[0])/(light_position[1]-tempV[1]));
+		float x = light_position.x-(light_position.y*(light_position.x-tempV.x)/(light_position.y-tempV.y));
 		float y = 0.01;
-		float z = (light_position[2]-light_position[1])*((light_position[2]-tempV[2])/(light_position[1]-tempV[1]));
+		float z = light_position.z-(light_position.y*(light_position.z-tempV.z)/(light_position.y-tempV.y));
 		gl_Position = projection * model_view * vec4(x,y,z,1.0);
 		N = projection * model_view * ctm * vNormal;
 		L = projection * model_view * (light_position - vec4(x,y,z,1.0));

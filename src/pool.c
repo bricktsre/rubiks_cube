@@ -67,7 +67,8 @@ mat4 model_view, projection, ctm;
 mat4 ball_ctms[5];
 vec4 old_a, old_e;
 vec4 lrb, tnf;
-vec4 light_position = {-1,3,0,1.0};
+vec4 light_position = {0,3,0,1.0};
+GLfloat theta = 0.0;
 
 vec4 cube_vertices[36] = {
 	{0.0,1.0,0.0,1.0},{0.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
@@ -92,7 +93,6 @@ void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 	matrixMultiplication(trans,scale,copy);
 	vec4 temp;
 	for(i = 0; i<36; i+=3){
-		//printf("V: %d N: %d\n", *v_index, *n_index);
 		matrixVectorMultiplication(copy,cube_vertices[i],temp);
 		vectorCopy(temp, vertices[*v_index]);
 		matrixVectorMultiplication(copy,cube_vertices[i+1],temp);
@@ -104,14 +104,9 @@ void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 		vectorSubtraction(vertices[(*v_index)+1],vertices[*v_index],t1);
 		vectorSubtraction(vertices[(*v_index)+2],vertices[*v_index],t2);
 		vectorCrossProduct(t1,t2,t3);
-		//vectorNormalize(t3,t3);
 		vectorCopy(t3, normals[*n_index]);
 		vectorCopy(t3, normals[(*n_index)+1]);
 		vectorCopy(t3, normals[(*n_index)+2]);
-		//printVector(t1);
-		//printVector(t2);
-		//printVector(t3);
-		//fprintf(stderr,"\n");
 		(*v_index)+=3;
 		(*n_index)+=3;
 	}
@@ -261,6 +256,7 @@ void display(void)
 		}
 	}
 	for(i=0;i<5;i++){
+		glUniform4fv(light_location, 1, light_position);
 		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
 		glUniform1fv(shininess_location, 1, (GLfloat *) &ball_materials[i].shininess);
 
@@ -275,6 +271,7 @@ void display(void)
 	}
 	glUniform1i(shadow_location, 1);
 	for(i=0;i<5;i++){
+		glUniform4fv(light_location, 1, light_position);
 		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
 		glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[2].shininess);
 
