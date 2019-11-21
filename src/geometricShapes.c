@@ -114,12 +114,13 @@ void cylinder(vec4 *vertices, vec4 *colors, int num_vertices) {
 }
 
 
-void sphere(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change) {
+void sphere(vec4 *vertices, vec4 *colors, vec4 center, GLfloat r, int num_vertices, int degree_change) {
         GLfloat theta = ((90.0/degree_change)*M_PI)/180;
         GLfloat phi = ((90.0/degree_change)*M_PI)/180;
         GLfloat angleY = M_PI;
-        GLfloat r = 1.0;
-        vec4 ring1[(degree_change*4)+1];
+        mat4 trans;
+	matrixTranslation(center[0],center[1],center[2],trans);
+	vec4 ring1[(degree_change*4)+1];
         generateRingSphere(angleY, theta, r, ring1);
         int i, j;
         for( i = 0 ; i< (2*degree_change); i++){
@@ -128,16 +129,51 @@ void sphere(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change) {
                 generateRingSphere(angleY, theta, r, ring2);
                 for(j=0;j<(4*degree_change);j++){
                         int row_points = degree_change*4*6;
-                        vectorCopy(ring2[j], vertices[(i*row_points)+j*6]);
-                        vectorCopy(ring1[j+1], vertices[(i*row_points)+(j*6)+1]);
-                        vectorCopy(ring1[j], vertices[(i*row_points)+(j*6)+2]);
-                        vectorCopy(ring2[j], vertices[(i*row_points)+(j*6)+3]);
-                        vectorCopy(ring2[j+1], vertices[(i*row_points)+(j*6)+4]);
-                        vectorCopy(ring1[j+1], vertices[(i*row_points)+(j*6)+5]);
+			matrixVectorMultiplication(trans, ring2[j], vertices[(i*row_points)+j*6]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(i*row_points)+(j*6)+1]);
+                        matrixVectorMultiplication(trans, ring1[j], vertices[(i*row_points)+(j*6)+2]);
+                        matrixVectorMultiplication(trans, ring2[j], vertices[(i*row_points)+(j*6)+3]);
+                        matrixVectorMultiplication(trans, ring2[j+1], vertices[(i*row_points)+(j*6)+4]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(i*row_points)+(j*6)+5]);
 
                         getColor(colors, (i*row_points)+(j*6));
                         getColor(colors, (i*row_points)+(j*6)+3);
                 }
+                matrixVariableCopy((degree_change*4)+1,ring2,ring1);
+        }
+}
+
+void sphereWithNormals(vec4 *vertices, vec4 *normals, vec4 center, GLfloat r, int *v_index, int *n_index, int degree_change) {
+        GLfloat theta = ((90.0/degree_change)*M_PI)/180;
+        GLfloat phi = ((90.0/degree_change)*M_PI)/180;
+        GLfloat angleY = M_PI;
+        mat4 trans;
+	matrixTranslation(center[0],center[1],center[2],trans);
+	vec4 ring1[(degree_change*4)+1];
+        generateRingSphere(angleY, theta, r, ring1);
+        int i, j;
+        for( i = 0 ; i< (2*degree_change); i++){
+                angleY += phi;
+                vec4 ring2[(degree_change*4)+1];
+                generateRingSphere(angleY, theta, r, ring2);
+                for(j=0;j<(4*degree_change);j++){
+                        int row_points = degree_change*4*6;
+			matrixVectorMultiplication(trans, ring2[j], vertices[*v_index]);
+                	vectorSubtraction(vertices[*v_index],center,normals[*n_index]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*v_index)+1]);
+                	vectorSubtraction(vertices[(*v_index)+1],center,normals[(*n_index)+1]);
+                        matrixVectorMultiplication(trans, ring1[j], vertices[(*v_index)+2]);
+                	vectorSubtraction(vertices[(*v_index)+2],center,normals[(*n_index)+2]);
+                        matrixVectorMultiplication(trans, ring2[j], vertices[(*v_index)+3]);
+                	vectorSubtraction(vertices[(*v_index)+3],center,normals[(*n_index)+3]);
+                        matrixVectorMultiplication(trans, ring2[j+1], vertices[(*v_index)+4]);
+                	vectorSubtraction(vertices[(*v_index)+4],center,normals[(*n_index)+4]);
+                        matrixVectorMultiplication(trans, ring1[j+1], vertices[(*v_index)+5]);
+                	vectorSubtraction(vertices[(*v_index)+5],center,normals[(*n_index)+5]);
+
+			(*n_index)+=6;
+                	(*v_index)+=6;
+		}
                 matrixVariableCopy((degree_change*4)+1,ring2,ring1);
         }
 }

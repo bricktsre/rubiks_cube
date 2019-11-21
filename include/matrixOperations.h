@@ -26,6 +26,10 @@ void vectorCrossProduct(vec4 a, vec4 b, vec4 v);
 
 void vectorCopy(vec4 a, vec4 v);
 
+void vectorProduct(vec4 a, vec4 b, vec4 c);
+
+void makeVector(GLfloat a, GLfloat b, GLfloat c, GLfloat d, vec4 v);
+
 void printMatrix(mat4 a);
 
 void identityMatrix(mat4 m);

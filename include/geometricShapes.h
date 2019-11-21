@@ -7,9 +7,10 @@ typedef GLfloat vec4[4];
 typedef GLfloat mat4[16];
 
 void cylinder(vec4 *vertices, vec4 *color, int num_vertices);
-void sphere(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change);
+void sphere(vec4 *vertices, vec4 *colors, vec4 center, GLfloat r, int num_vertices, int degree_change);
 void torus(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change);
 void spring(vec4 *vertices, vec4 *colors, int num_vertices, int degree_change);
+void sphereWithNormals(vec4 *vertices, vec4 *normals, vec4 center, GLfloat r, int *v_index, int *n_index, int degree_change);
 void matrixVariableCopy(int num, vec4 *a, vec4 *b);
 void generateRingSphere(GLfloat angleY, GLfloat theta, GLfloat r, vec4 *ring);
 void generateRingTorus(GLfloat angleU, GLfloat theta, GLfloat inner_r, GLfloat outer_r, vec4 *ring); 
