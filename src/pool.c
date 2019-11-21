@@ -58,17 +58,15 @@ vec4 light_specular = {1.0,1.0,1.0,1.0};
 vec4 light_ambient = {0.3, 0.3, 0.3, 1.0};
 GLfloat attenuation_constant = 0.5, attenuation_linear=0.1, attenuation_quadratic=0.1, shininess=1.0;
 GLuint att_const_location, att_lin_location, att_quad_location, shininess_location, shadow_location;
-GLuint amb_prod_location, diff_prod_location, spec_prod_location;
+GLuint amb_prod_location, diff_prod_location, spec_prod_location, light_location;
 
-int num_vertices = 0;
-GLfloat angle = 0.0, phi = 0.0, step = 0.0;
-GLuint model_view_location, projection_location, ctm_location, light_location;
+int num_vertices = 0, animate = 0;;
+GLuint model_view_location, projection_location, ctm_location;
 mat4 model_view, projection, ctm;
 mat4 ball_ctms[5];
-vec4 old_a, old_e;
 vec4 lrb, tnf;
 vec4 light_position = {0,3,0,1.0};
-GLfloat theta = 0.0;
+GLfloat theta = M_PI/2, phi = M_PI/4, radius = 10.0;
 
 vec4 cube_vertices[36] = {
 	{0.0,1.0,0.0,1.0},{0.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
@@ -187,14 +185,14 @@ void init(void)
 	  glUniform1i(texture_location, 0);
 	 */
 	identityMatrix(model_view);
-	vec4 e = {0,5.0,2.0,0.0};
+	vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
 	vec4 a = {0.0,0.0,0,0.0};
 	vec4 vup = {0.0,1.0,0.0,0.0};
 	lookAt(e,a,vup,model_view);
 
 	identityMatrix(projection);
-	makeVector(-1.5,1.5,-2,0,lrb);
-	makeVector(2,-1,-8,0,tnf);
+	makeVector(-1,1,-1,0,lrb);
+	makeVector(1,-1,-14,0,tnf);
 	frustum(lrb,tnf,projection);
 	matrixTranslation(light_position[0],light_position[1],light_position[2],ctm);
 	int i;
@@ -313,6 +311,34 @@ void keyboard(unsigned char key, int mousex, int mousey)
 	else if(key == 'o'){
 		vec4 temp = {0,-0.1,0,0};
 		vectorAddition(light_position, temp, light_position);
+	}else if(key == 'w'){
+		if(phi <= 0) return;
+		phi -= 0.05;
+		vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
+		vec4 a = {0.0,0.0,0,0.0};
+		vec4 vup = {0.0,1.0,0.0,0.0};
+		lookAt(e,a,vup,model_view);
+	}else if(key == 's'){
+		if(phi >= M_PI) return;
+		phi += 0.05;
+		vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
+		vec4 a = {0.0,0.0,0,0.0};
+		vec4 vup = {0.0,1.0,0.0,0.0};
+		lookAt(e,a,vup,model_view);
+	}else if(key == 'a'){
+		theta += 0.05;
+		vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
+		vec4 a = {0.0,0.0,0,0.0};
+		vec4 vup = {0.0,1.0,0.0,0.0};
+		lookAt(e,a,vup,model_view);
+	}else if(key == 'd'){
+		theta -= 0.05;
+		vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
+		vec4 a = {0.0,0.0,0,0.0};
+		vec4 vup = {0.0,1.0,0.0,0.0};
+		lookAt(e,a,vup,model_view);
+	}else if(key == 'g'){
+		animate = 1;
 	}
 	mat4 trans;
 	matrixTranslation(light_position[0],light_position[1],light_position[2],trans);
@@ -339,7 +365,7 @@ void mouse(int button, int state, int x, int y) {
 }
 
 void idle(void) {
-	mat4 spin, copy;
+	if(animate){mat4 spin, copy;
 	matrixRotateY(0.0075,spin);
 	matrixMultiplication(spin,ball_ctms[1],copy);
 	matrixCopy(copy,ball_ctms[1]);
@@ -353,6 +379,7 @@ void idle(void) {
 	matrixMultiplication(spin,ball_ctms[4],copy);
 	matrixCopy(copy,ball_ctms[4]);
 	glutPostRedisplay();
+	}
 }
 
 int main(int argc, char **argv)
