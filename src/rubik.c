@@ -25,7 +25,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include "matrixOperations.h"
-#include "geometricShapes.h"
+#include "track.h"
 
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 
@@ -40,7 +40,7 @@ typedef struct {
 	GLfloat shininess;
 } material;
 
-material ball_materials[5] = {
+material cube_materials[5] = {
 	{{1.0, 0.0, 0.0, 1.0}, {1.0, 0.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 25},
 	{{0.0, 1.0, 0.0, 1.0}, {0.0, 1.0, 0.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 25},
 	{{0.0, 0.0, 1.0, 1.0}, {0.0, 0.0, 1.0, 1.0}, {1.0, 1.0, 1.0, 1.0}, 25},
@@ -66,31 +66,39 @@ mat4 model_view, projection, ctm;
 mat4 ball_ctms[5];
 vec4 lrb, tnf;
 vec4 light_position = {0,3,0,1.0};
-GLfloat theta = M_PI/2, phi = M_PI/4, radius = 10.0;
+GLfloat theta = M_PI/2, phi = M_PI/4, radius = 3.0;
 
-vec4 cube_vertices[36] = {
-	{0.0,1.0,0.0,1.0},{0.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
-	{0.0,1.0,0.0,1.0},{1.0,0.0,0.0,1.0},{1.0,1.0,0.0,1.0},
-	{1.0,1.0,0.0,1.0},{1.0,0.0,0.0,1.0},{1.0,0.0,-1.0,1.0},
-	{1.0,1.0,0.0,1.0},{1.0,0.0,-1.0,1.0},{1.0,1.0,-1.0,1.0},
-	{1.0,1.0,-1.0,1.0},{1.0,0.0,-1.0,1.0},{0.0,0.0,-1.0,1.0},
-	{1.0,1.0,-1.0,1.0},{0.0,0.0,-1.0,1.0},{0.0,1.0,-1.0,1.0},
-	{0.0,1.0,-1.0,1.0},{0.0,0.0,-1.0,1.0},{0.0,0.0,0.0,1.0},
-	{0.0,1.0,-1.0,1.0},{0.0,0.0,0.0,1.0},{0.0,1.0,0.0,1.0},
-	{0.0,1.0,0.0,1.0},{1.0,1.0,0.0,1.0},{1.0,1.0,-1.0,1.0},
-	{0.0,1.0,0.0,1.0},{1.0,1.0,-1.0,1.0},{0.0,1.0,-1.0,1.0},
-	{0.0,0.0,0.0,1.0},{0.0,0.0,-1.0,1.0},{1.0,0.0,-1.0,1.0},
-	{0.0,0.0,0.0,1.0},{1.0,0.0,-1.0,1.0},{1.0,0.0,0.0,1.0},
+vec4 cube_vertices[60] = {
+	{0.1,0.9,0.0,1.0},{0.1,0.1,0.0,1.0},{0.9,0.1,0.0,1.0},
+	{0.1,0.9,0.0,1.0},{0.9,0.1,0.0,1.0},{0.9,0.9,0.0,1.0},
+	{1.0,0.9,-0.1,1.0},{1.0,0.1,-0.1,1.0},{1.0,0.1,-0.9,1.0},
+	{1.0,0.9,-0.1,1.0},{1.0,0.1,-0.9,1.0},{1.0,0.9,-0.9,1.0},
+	{0.9,0.9,-1.0,1.0},{0.9,0.1,-1.0,1.0},{0.1,0.1,-1.0,1.0},
+	{0.9,0.9,-1.0,1.0},{0.1,0.1,-1.0,1.0},{0.1,0.9,-1.0,1.0},
+	{0.0,0.9,-0.9,1.0},{0.0,0.1,-0.9,1.0},{0.0,0.1,-0.1,1.0},
+	{0.0,0.9,-0.9,1.0},{0.0,0.1,-0.1,1.0},{0.0,0.9,-0.1,1.0},
+	{0.1,1.0,-0.9,1.0},{0.1,1.0,-0.1,1.0},{0.9,1.0,-0.1,1.0},
+	{0.1,1.0,-0.9,1.0},{0.9,1.0,-0.1,1.0},{0.9,1.0,-0.9,1.0},
+	{0.1,0.0,-0.1,1.0},{0.1,0.0,-0.9,1.0},{0.9,0.0,-0.9,1.0},
+	{0.1,0.0,-0.1,1.0},{0.9,0.0,-0.9,1.0},{0.9,0.0,-0.1,1.0},
+	{0.0,0.1,-0.1,1.0},{0.1,0.0,-0.1,1.0},{0.1,0.1,0.0,1.0},
+	{0.1,0.9,0.0,1.0},{0.1,1.0,-0.1,1.0},{0.0,0.9,-0.1,1.0},
+	{0.9,0.1,0.0,1.0},{0.9,0.0,-0.1,1.0},{1.0,0.1,-0.1,1.0},
+	{1.0,0.9,-0.1,1.0},{0.9,1.0,-0.1,1.0},{0.9,0.9,0.0,1.0},
+	{0.1,0.1,-1.0,1.0},{0.1,0.0,-0.9,1.0},{0.0,0.1,-0.9,1.0},
+	{0.0,0.9,-0.9,1.0},{0.1,1.0,-0.9,1.0},{0.1,0.9,-1.0,1.0},
+	{1.0,0.1,-0.9,1.0},{0.9,0.0,-0.9,1.0},{0.9,0.1,-1.0,1.0},
+	{0.9,0.9,-1.0,1.0},{0.9,1.0,-0.9,1.0},{1.0,0.9,-0.9,1.0}
 };
 
 void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 	int i;
 	mat4 trans, scale, copy;
-	matrixTranslation(-10,-0.25,10,trans);
-	matrixScale(20,0.25,20,scale);
+	matrixTranslation(0,0,0,trans);
+	matrixScale(1,1,1,scale);
 	matrixMultiplication(trans,scale,copy);
 	vec4 temp;
-	for(i = 0; i<36; i+=3){
+	for(i = 0; i<60; i+=3){
 		matrixVectorMultiplication(copy,cube_vertices[i],temp);
 		vectorCopy(temp, vertices[*v_index]);
 		matrixVectorMultiplication(copy,cube_vertices[i+1],temp);
@@ -113,23 +121,11 @@ void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 void fill(vec4 *vertices, vec4 *normals) {
 	int v_index = 0, n_index = 0;
 	makeCube(vertices,normals,&v_index,&n_index);
-	vec4 p1 = {0,0,0,1};
-	sphereWithNormals(vertices,normals,p1,0.2,&v_index,&n_index,15);
-	vec4 p2 = {0,0.5,0,1};
-	sphereWithNormals(vertices,normals,p2,0.5,&v_index,&n_index,15);
-	vec4 p3 = {1,0.5,0,1};
-	sphereWithNormals(vertices,normals,p3,0.5,&v_index,&n_index,15);
-	vec4 p4 = {2,0.5,0,1};
-	sphereWithNormals(vertices,normals,p4,0.5,&v_index,&n_index,15);
-	vec4 p5 = {3,0.5,0,1};
-	sphereWithNormals(vertices,normals,p5,0.5,&v_index,&n_index,15);
-	vec4 p6 = {4,0.5,0,1};
-	sphereWithNormals(vertices,normals,p6,0.5,&v_index,&n_index,15);
 }
 
 void init(void)
 {
-	num_vertices = 6*(pow(15,2)*48) + 36;
+	num_vertices = 132;
 	vec4 vertices[num_vertices];
 	vec4 normals[num_vertices];
 	fill(vertices,normals);
@@ -141,7 +137,7 @@ void init(void)
 	  FILE *fp = fopen("p2texture04.raw", "r");
 	  fread(my_texels, width * height * 3, 1, fp);
 	  fclose(fp);
-	 */
+	  */
 	GLuint program = initShader("vshader_ctm.glsl", "fshader.glsl");
 	glUseProgram(program);
 
@@ -156,7 +152,7 @@ void init(void)
 
 	  int param;
 	  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
-	 */
+	  */
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -183,7 +179,7 @@ void init(void)
 
 	  GLuint texture_location = glGetUniformLocation(program, "texture");
 	  glUniform1i(texture_location, 0);
-	 */
+	  */
 	identityMatrix(model_view);
 	vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
 	vec4 a = {0.0,0.0,0,0.0};
@@ -231,57 +227,35 @@ void display(void)
 	glUniform1fv(att_lin_location, 1, (GLfloat *) &attenuation_linear);
 	glUniform1fv(att_quad_location, 1, (GLfloat *) &attenuation_quadratic);
 	glUniform1i(shadow_location, 0);
-	int i;
-	for(i=0;i<2;i++){
-		glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[i].shininess);
+	glUniform1fv(shininess_location, 1, (GLfloat *) &cube_materials[0].shininess);
 
-		vec4 amb_product, diff_product, spec_product;
-		vectorProduct(other_materials[i].reflect_ambient, light_ambient, amb_product);
-		vectorProduct(other_materials[i].reflect_diffuse, light_diffuse, diff_product);
-		vectorProduct(other_materials[i].reflect_specular, light_specular, spec_product);
-		glUniform4fv(amb_prod_location, 1, amb_product);
-		glUniform4fv(diff_prod_location, 1, diff_product);
-		glUniform4fv(spec_prod_location, 1, spec_product);
+	vec4 amb_product, diff_product, spec_product;
+	vectorProduct(cube_materials[0].reflect_ambient, light_ambient, amb_product);
+	vectorProduct(cube_materials[0].reflect_diffuse, light_diffuse, diff_product);
+	vectorProduct(cube_materials[0].reflect_specular, light_specular, spec_product);
+	glUniform4fv(amb_prod_location, 1, amb_product);
+	glUniform4fv(diff_prod_location, 1, diff_product);
+	glUniform4fv(spec_prod_location, 1, spec_product);
 
-		if(i==0){ 
-			mat4 temp;
-			identityMatrix(temp);
-			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}else{
-			glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ctm);
-			glDrawArrays(GL_TRIANGLES, 36, 10800);
-		}
-	}
-	for(i=0;i<5;i++){
-		glUniform4fv(light_location, 1, light_position);
-		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
-		glUniform1fv(shininess_location, 1, (GLfloat *) &ball_materials[i].shininess);
+	mat4 temp;
+	identityMatrix(temp);
+	glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
+	glDrawArrays(GL_TRIANGLES, 0, 132);
+	/*glUniform1i(shadow_location, 1);
+	  for(i=0;i<5;i++){
+	  glUniform4fv(light_location, 1, light_position);
+	  glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
+	  glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[2].shininess);
 
-		vec4 amb_product, diff_product, spec_product;
-		vectorProduct(ball_materials[i].reflect_ambient, light_ambient, amb_product);
-		vectorProduct(ball_materials[i].reflect_diffuse, light_diffuse, diff_product);
-		vectorProduct(ball_materials[i].reflect_specular, light_specular, spec_product);
-		glUniform4fv(amb_prod_location, 1, amb_product);
-		glUniform4fv(diff_prod_location, 1, diff_product);
-		glUniform4fv(spec_prod_location, 1, spec_product);
-		glDrawArrays(GL_TRIANGLES, (i*10800)+10836, 10800);
-	}
-	glUniform1i(shadow_location, 1);
-	for(i=0;i<5;i++){
-		glUniform4fv(light_location, 1, light_position);
-		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ball_ctms[i]);
-		glUniform1fv(shininess_location, 1, (GLfloat *) &other_materials[2].shininess);
-
-		vec4 amb_product, diff_product, spec_product;
-		vectorProduct(other_materials[2].reflect_ambient, light_ambient, amb_product);
-		vectorProduct(other_materials[2].reflect_diffuse, light_diffuse, diff_product);
-		vectorProduct(other_materials[2].reflect_specular, light_specular, spec_product);
-		glUniform4fv(amb_prod_location, 1, amb_product);
-		glUniform4fv(diff_prod_location, 1, diff_product);
-		glUniform4fv(spec_prod_location, 1, spec_product);
-		glDrawArrays(GL_TRIANGLES, (i*10800)+10836, 10800);
-	}
+	  vec4 amb_product, diff_product, spec_product;
+	  vectorProduct(other_materials[2].reflect_ambient, light_ambient, amb_product);
+	  vectorProduct(other_materials[2].reflect_diffuse, light_diffuse, diff_product);
+	  vectorProduct(other_materials[2].reflect_specular, light_specular, spec_product);
+	  glUniform4fv(amb_prod_location, 1, amb_product);
+	  glUniform4fv(diff_prod_location, 1, diff_product);
+	  glUniform4fv(spec_prod_location, 1, spec_product);
+	  glDrawArrays(GL_TRIANGLES, (i*10800)+10836, 10800);
+	  }*/
 	glutSwapBuffers();
 }
 
@@ -366,19 +340,19 @@ void mouse(int button, int state, int x, int y) {
 
 void idle(void) {
 	if(animate){mat4 spin, copy;
-	matrixRotateY(0.0075,spin);
-	matrixMultiplication(spin,ball_ctms[1],copy);
-	matrixCopy(copy,ball_ctms[1]);
-	matrixRotateY(0.01,spin);
-	matrixMultiplication(spin,ball_ctms[2],copy);
-	matrixCopy(copy,ball_ctms[2]);
-	matrixRotateY(0.0115,spin);
-	matrixMultiplication(spin,ball_ctms[3],copy);
-	matrixCopy(copy,ball_ctms[3]);
-	matrixRotateY(0.014,spin);
-	matrixMultiplication(spin,ball_ctms[4],copy);
-	matrixCopy(copy,ball_ctms[4]);
-	glutPostRedisplay();
+		matrixRotateY(0.0075,spin);
+		matrixMultiplication(spin,ball_ctms[1],copy);
+		matrixCopy(copy,ball_ctms[1]);
+		matrixRotateY(0.01,spin);
+		matrixMultiplication(spin,ball_ctms[2],copy);
+		matrixCopy(copy,ball_ctms[2]);
+		matrixRotateY(0.0115,spin);
+		matrixMultiplication(spin,ball_ctms[3],copy);
+		matrixCopy(copy,ball_ctms[3]);
+		matrixRotateY(0.014,spin);
+		matrixMultiplication(spin,ball_ctms[4],copy);
+		matrixCopy(copy,ball_ctms[4]);
+		glutPostRedisplay();
 	}
 }
 
