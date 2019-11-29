@@ -33,7 +33,7 @@ typedef GLfloat vec4[4];
 typedef GLfloat mat4[16];
 typedef GLfloat vec2[2];
 
-typedef struct {
+/*typedef struct {
 	vec4 reflect_ambient;
 	vec4 reflect_diffuse;
 	vec4 reflect_specular;
@@ -51,24 +51,25 @@ material other_materials[3] = {
 	{{0,0.4,0.0,1.0},{0,0.4,0,1.0},{0,0.4,0,1.0},1},
 	{{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},1},
 	{{0,0.35,0.0,1.0},{0.0,0,0.0,1.0},{0,0,0,1.0},100}
-};
+};*/
 
-vec4 light_diffuse = {1.0,1.0,1.0,1.0};
-vec4 light_specular = {1.0,1.0,1.0,1.0};
-vec4 light_ambient = {0.3, 0.3, 0.3, 1.0};
+//vec4 light_diffuse = {1.0,1.0,1.0,1.0};
+//vec4 light_specular = {1.0,1.0,1.0,1.0};
+//vec4 light_ambient = {0.3, 0.3, 0.3, 1.0};
 GLfloat attenuation_constant = 0.5, attenuation_linear=0.1, attenuation_quadratic=0.1, shininess=1.0;
 GLuint att_const_location, att_lin_location, att_quad_location, shininess_location, shadow_location;
-GLuint amb_prod_location, diff_prod_location, spec_prod_location, light_location;
+//GLuint amb_prod_location, diff_prod_location, spec_prod_location, 
+GLuint light_location;
 
 int num_vertices = 0, animate = 0;;
 GLuint model_view_location, projection_location, ctm_location;
 mat4 model_view, projection, ctm;
-mat4 ball_ctms[5];
+//mat4 ball_ctms[5];
 vec4 lrb, tnf;
 vec4 light_position = {0,3,0,1.0};
 GLfloat theta = M_PI/2, phi = M_PI/4, radius = 3.0;
 
-vec4 cube_vertices[60] = {
+vec4 cube_vertices[132] = {
 	{0.1,0.9,0.0,1.0},{0.1,0.1,0.0,1.0},{0.9,0.1,0.0,1.0},
 	{0.1,0.9,0.0,1.0},{0.9,0.1,0.0,1.0},{0.9,0.9,0.0,1.0},
 	{1.0,0.9,-0.1,1.0},{1.0,0.1,-0.1,1.0},{1.0,0.1,-0.9,1.0},
@@ -88,17 +89,88 @@ vec4 cube_vertices[60] = {
 	{0.1,0.1,-1.0,1.0},{0.1,0.0,-0.9,1.0},{0.0,0.1,-0.9,1.0},
 	{0.0,0.9,-0.9,1.0},{0.1,1.0,-0.9,1.0},{0.1,0.9,-1.0,1.0},
 	{1.0,0.1,-0.9,1.0},{0.9,0.0,-0.9,1.0},{0.9,0.1,-1.0,1.0},
-	{0.9,0.9,-1.0,1.0},{0.9,1.0,-0.9,1.0},{1.0,0.9,-0.9,1.0}
+	{0.9,0.9,-1.0,1.0},{0.9,1.0,-0.9,1.0},{1.0,0.9,-0.9,1.0},
+	{0.0,0.1,-0.1,1.0},{0.1,0.1,0.0,1.0},{0.1,0.9,0.0,1.0},
+	{0.0,0.1,-0.1,1.0},{0.1,0.9,0.0,1.0},{0.0,0.9,-0.1,1.0},
+	{0.9,0.1,0.0,1.0},{1.0,0.1,-0.1,1.0},{1.0,0.9,-0.1,1.0},
+	{0.9,0.1,0.0,1.0},{1.0,0.9,-0.1,1.0},{0.9,0.9,0.0,1.0},	
+	{1.0,0.1,-0.9,1.0},{0.9,0.1,-1.0,1.0},{0.9,0.9,-1.0,1.0},
+	{1.0,0.1,-0.9,1.0},{0.9,0.9,-1.0,1.0},{1.0,0.9,-0.9,1.0},
+	{0.1,0.1,-1.0,1.0},{0.0,0.1,-0.9,1.0},{0.0,0.9,-0.9,1.0},
+	{0.1,0.1,-1.0,1.0},{0.0,0.9,-0.9,1.0},{0.1,0.9,-1.0,1.0},
+	{0.1,1.0,-0.1,1.0},{0.1,0.9,0.0,1.0},{0.9,0.9,0.0,1.0},
+	{0.1,1.0,-0.1,1.0},{0.9,0.9,0.0,1.0},{0.9,1.0,-0.1,1.0},
+	{0.9,1.0,-0.1,1.0},{1.0,0.9,-0.1,1.0},{1.0,0.9,-0.9,1.0},
+	{0.9,1.0,-0.1,1.0},{1.0,0.9,-0.9,1.0},{0.9,1.0,-0.9,1.0},
+	{0.9,1.0,-0.9,1.0},{0.9,0.9,-1.0,1.0},{0.1,0.9,-1.0,1.0},
+	{0.9,1.0,-0.9,1.0},{0.1,0.9,-1.0,1.0},{0.1,1.0,-0.9,1.0},
+	{0.1,1.0,-0.9,1.0},{0.0,0.9,-0.9,1.0},{0.0,0.9,-0.1,1.0},
+	{0.1,1.0,-0.9,1.0},{0.0,0.9,-0.1,1.0},{0.1,1.0,-0.1,1.0},
+	{0.1,0.1,0.0,1.0},{0.1,0.0,-0.1,1.0},{0.9,0.0,-0.1,1.0},
+	{0.1,0.1,0.0,1.0},{0.9,0.0,-0.1,1.0},{0.9,0.1,0.0,1.0},
+	{1.0,0.1,-0.1,1.0},{0.9,0.0,-0.1,1.0},{0.9,0.0,-0.9,1.0},
+	{1.0,0.1,-0.1,1.0},{0.9,0.0,-0.9,1.0},{1.0,0.1,-0.9,1.0},
+	{0.9,0.1,-1.0,1.0},{0.9,0.0,-0.9,1.0},{0.1,0.0,-0.9,1.0},
+	{0.9,0.1,-1.0,1.0},{0.1,0.0,-0.9,1.0},{0.1,0.1,-1.0,1.0},
+	{0.0,0.1,-0.9,1.0},{0.1,0.0,-0.9,1.0},{0.1,0.0,-0.1,1.0},
+	{0.0,0.1,-0.9,1.0},{0.1,0.0,-0.1,1.0},{0.0,0.1,-0.1,1.0}
 };
 
-void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
+vec4 cube_colors[132] = {
+	{1.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
+	{1.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},{1.0,0.0,0.0,1.0},
+	{0.0,1.0,0.0,1.0},{0.0,1.0,0.0,1.0},{0.0,1.0,0.0,1.0},
+	{0.0,1.0,0.0,1.0},{0.0,1.0,0.0,1.0},{0.0,1.0,0.0,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},
+	{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},{1.0,1.0,1.0,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+	{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},{0.1,0.1,0.1,1.0},
+};
+
+void makeCube(vec4 *vertices, vec4 *normals, vec4 *colors, int *v_index, int *n_index, int *c_index){
 	int i;
 	mat4 trans, scale, copy;
 	matrixTranslation(0,0,0,trans);
 	matrixScale(1,1,1,scale);
 	matrixMultiplication(trans,scale,copy);
 	vec4 temp;
-	for(i = 0; i<60; i+=3){
+	for(i = 0; i<132; i+=3){
 		matrixVectorMultiplication(copy,cube_vertices[i],temp);
 		vectorCopy(temp, vertices[*v_index]);
 		matrixVectorMultiplication(copy,cube_vertices[i+1],temp);
@@ -113,14 +185,18 @@ void makeCube(vec4 *vertices, vec4 *normals, int *v_index, int *n_index){
 		vectorCopy(t3, normals[*n_index]);
 		vectorCopy(t3, normals[(*n_index)+1]);
 		vectorCopy(t3, normals[(*n_index)+2]);
+		vectorCopy(cube_colors[(*c_index)], colors[(*c_index)]);
+		vectorCopy(cube_colors[(*c_index)+1], colors[(*c_index)+1]);
+		vectorCopy(cube_colors[(*c_index)+2], colors[(*c_index)+2]);
 		(*v_index)+=3;
 		(*n_index)+=3;
+		(*c_index)+=3;
 	}
 }	
 
-void fill(vec4 *vertices, vec4 *normals) {
-	int v_index = 0, n_index = 0;
-	makeCube(vertices,normals,&v_index,&n_index);
+void fill(vec4 *vertices, vec4 *normals, vec4 *colors) {
+	int v_index = 0, n_index = 0, c_index = 0;
+	makeCube(vertices,normals,colors,&v_index,&n_index,&c_index);
 }
 
 void init(void)
@@ -128,31 +204,12 @@ void init(void)
 	num_vertices = 132;
 	vec4 vertices[num_vertices];
 	vec4 normals[num_vertices];
-	fill(vertices,normals);
+	vec4 colors[num_vertices];
+	fill(vertices,normals,colors);
 
-	/*int width = 800;
-	  int height = 800;
-	  GLubyte my_texels[width][height][3];
-
-	  FILE *fp = fopen("p2texture04.raw", "r");
-	  fread(my_texels, width * height * 3, 1, fp);
-	  fclose(fp);
-	  */
 	GLuint program = initShader("vshader_ctm.glsl", "fshader.glsl");
 	glUseProgram(program);
 
-	/*GLuint mytex[1];
-	  glGenTextures(1, mytex);
-	  glBindTexture(GL_TEXTURE_2D, mytex[0]);
-	  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, my_texels);
-	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-	  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-
-	  int param;
-	  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &param);
-	  */
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
 	glBindVertexArray(vao);
@@ -160,10 +217,10 @@ void init(void)
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(normals), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(normals) + sizeof(colors), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
-	//glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(textures), textures); 
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(normals), normals);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors), colors);
 
 	GLuint vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
@@ -172,14 +229,11 @@ void init(void)
 	GLuint vNormal = glGetAttribLocation(program, "vNormal");
 	glEnableVertexAttribArray(vNormal);
 	glVertexAttribPointer(vNormal, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
+	
+	GLuint vColor = glGetAttribLocation(program, "vColor");
+	glEnableVertexAttribArray(vColor);
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
 
-	/*GLuint vTexCoord = glGetAttribLocation(program, "vTexCoord");
-	  glEnableVertexAttribArray(vTexCoord);
-	  glVertexAttribPointer(vTexCoord, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid *) 0 + (sizeof(vertices) + sizeof(normals)));
-
-	  GLuint texture_location = glGetUniformLocation(program, "texture");
-	  glUniform1i(texture_location, 0);
-	  */
 	identityMatrix(model_view);
 	vec4 e = {radius*cos(theta)*sin(phi),radius*cos(phi),radius*sin(theta)*sin(phi),0.0};
 	vec4 a = {0.0,0.0,0,0.0};
@@ -188,13 +242,13 @@ void init(void)
 
 	identityMatrix(projection);
 	makeVector(-1,1,-1,0,lrb);
-	makeVector(1,-1,-14,0,tnf);
-	frustum(lrb,tnf,projection);
+	makeVector(1,-1,-10,0,tnf);
+	ortho(lrb,tnf,projection);
 	matrixTranslation(light_position[0],light_position[1],light_position[2],ctm);
-	int i;
+	/*int i;
 	for(i=0;i<5;i++){
 		identityMatrix(ball_ctms[i]);
-	}
+	}*/
 	model_view_location = glGetUniformLocation(program, "model_view");
 	projection_location = glGetUniformLocation(program, "projection");
 	ctm_location = glGetUniformLocation(program, "ctm");
@@ -202,11 +256,11 @@ void init(void)
 	att_const_location = glGetUniformLocation(program, "attenuation_constant");
 	att_lin_location = glGetUniformLocation(program, "attenuation_linear");
 	att_quad_location = glGetUniformLocation(program, "attenuation_quadratic");
-	shininess_location = glGetUniformLocation(program, "shininess");
-	shadow_location = glGetUniformLocation(program, "isShadow");
-	amb_prod_location = glGetUniformLocation(program, "ambient_product");
-	diff_prod_location = glGetUniformLocation(program, "diffuse_product");
-	spec_prod_location = glGetUniformLocation(program, "specular_product");
+	//shininess_location = glGetUniformLocation(program, "shininess");
+	//shadow_location = glGetUniformLocation(program, "isShadow");
+	//amb_prod_location = glGetUniformLocation(program, "ambient_product");
+	//diff_prod_location = glGetUniformLocation(program, "diffuse_product");
+	//spec_prod_location = glGetUniformLocation(program, "specular_product");
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -226,17 +280,17 @@ void display(void)
 	glUniform1fv(att_const_location, 1, (GLfloat *) &attenuation_constant);
 	glUniform1fv(att_lin_location, 1, (GLfloat *) &attenuation_linear);
 	glUniform1fv(att_quad_location, 1, (GLfloat *) &attenuation_quadratic);
-	glUniform1i(shadow_location, 0);
-	glUniform1fv(shininess_location, 1, (GLfloat *) &cube_materials[0].shininess);
+	//glUniform1i(shadow_location, 0);
+	//glUniform1fv(shininess_location, 1, (GLfloat *) &cube_materials[0].shininess);
 
-	vec4 amb_product, diff_product, spec_product;
+	/*vec4 amb_product, diff_product, spec_product;
 	vectorProduct(cube_materials[0].reflect_ambient, light_ambient, amb_product);
 	vectorProduct(cube_materials[0].reflect_diffuse, light_diffuse, diff_product);
 	vectorProduct(cube_materials[0].reflect_specular, light_specular, spec_product);
 	glUniform4fv(amb_prod_location, 1, amb_product);
 	glUniform4fv(diff_prod_location, 1, diff_product);
 	glUniform4fv(spec_prod_location, 1, spec_product);
-
+*/
 	mat4 temp;
 	identityMatrix(temp);
 	glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
@@ -339,7 +393,7 @@ void mouse(int button, int state, int x, int y) {
 }
 
 void idle(void) {
-	if(animate){mat4 spin, copy;
+	/*if(animate){mat4 spin, copy;
 		matrixRotateY(0.0075,spin);
 		matrixMultiplication(spin,ball_ctms[1],copy);
 		matrixCopy(copy,ball_ctms[1]);
@@ -353,7 +407,7 @@ void idle(void) {
 		matrixMultiplication(spin,ball_ctms[4],copy);
 		matrixCopy(copy,ball_ctms[4]);
 		glutPostRedisplay();
-	}
+	}*/
 }
 
 int main(int argc, char **argv)
