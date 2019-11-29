@@ -17,7 +17,7 @@ void main()
 	vec4 NN = normalize(N);
 	vec4 VV = normalize(V);
 	vec4 LL = normalize(L);
-	ambient = color; //ambient_product;
+	ambient = color * vec4(0.3,0.3,0.3,1.0); //ambient_product;
 	vec4 H = normalize(LL + VV);
 	diffuse = max(dot(LL, NN), 0.0) * color; //diffuse_product;
 	specular = pow(max(dot(NN, H), 0.0), 25) * vec4(1.0,1.0,1.0,1.0); //specular_product;

@@ -5,7 +5,7 @@ IDIR = ../include
 CC = gcc
 
 # compiler flags
-CP = -Wall
+CP = -Wall -fno-stack-protector
 CFLAGS = -I$(IDIR) -lXi -lXmu -lglut -lGLEW -lGLU -lm -lGL
 
 # header dependencies
