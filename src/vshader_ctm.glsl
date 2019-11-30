@@ -38,7 +38,7 @@ void main()
 	}else{*/
 		gl_Position = projection * model_view * ctm * vPosition;
 		N = projection * model_view * ctm * vNormal;
-		L = projection * model_view * ctm * (light_position - vPosition);
+		L = light_position - (projection * model_view * ctm * vPosition);
 		vec4 eye_point = vec4(0.0, 0.0, 0.0, 1.0);
 		V = eye_point - (projection * model_view * ctm * vPosition);
 		distance = length(L);

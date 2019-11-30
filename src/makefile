@@ -5,11 +5,11 @@ IDIR = ../include
 CC = gcc
 
 # compiler flags
-CP = -Wall -fno-stack-protector
+CP = -Wall
 CFLAGS = -I$(IDIR) -lXi -lXmu -lglut -lGLEW -lGLU -lm -lGL
 
 # header dependencies
-_DEPS = initShader.h matrixOperations.h track.h
+_DEPS = initShader.h matrixOperations.h track.h cube_info.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # object files
@@ -19,7 +19,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: rubik
 
-rubik: rubik.c $(OBJ)
+rubik: rubik.c $(OBJ) $(DEPS)
 	$(CC) -o $@ $^ $(CFLAGS) $(CP)
 
 $(ODIR)/%.o: %.c $(IDIR)/%.h
