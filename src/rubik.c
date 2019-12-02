@@ -27,6 +27,8 @@
 #include "matrixOperations.h"
 #include "track.h"
 #include "cube_info.h"
+#include "solve_rc.h"
+#include "cube_state.h"
 
 #define BUFFER_OFFSET( offset )   ((GLvoid*) (offset))
 
@@ -37,29 +39,31 @@ typedef GLfloat vec2[2];
 GLfloat attenuation_constant = 0.5, attenuation_linear=0.1, attenuation_quadratic=0.1, shininess=1.0;
 GLuint att_const_location, att_lin_location, att_quad_location, shininess_location, shadow_location;
 GLuint light_location;
+vec4 light_position = {0,0,4,1.0};
 
 int num_vertices = 0, animate = 0;;
 GLuint model_view_location, projection_location, ctm_location;
 mat4 model_view, projection, ctm;
-vec4 lrb, tnf;
-vec4 light_position = {0,0,3,1.0};
+mat4 cube_ctms[27];
+
+int move = 0;
+char *solution = NULL;
+int sol_index = 0, sol_count = 0, sol_curr = 0;
 
 struct trackState temp = {0,{0.0,0.0,0.0,0.0},{1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0},{0.0,0.0,0.0,0.0},0.0,&ctm};
 struct trackState *track = &temp;
 
 void makeCube(vec4 *vertices, vec4 *normals, vec4 *colors, vec4 point, int *v_index, int *n_index, int *c_index, int *r_index){
 	int i;
-	mat4 trans, scale, copy;
+	mat4 trans;
 	matrixTranslation(point[0],point[1],point[2],trans);
-	matrixScale(1,1,1,scale);
-	matrixMultiplication(trans,scale,copy);
 	vec4 temp;
 	for(i = 0; i<132; i+=3){
-		matrixVectorMultiplication(copy,cube_vertices[i],temp);
+		matrixVectorMultiplication(trans,cube_vertices[i],temp);
 		vectorCopy(temp, vertices[*v_index]);
-		matrixVectorMultiplication(copy,cube_vertices[i+1],temp);
+		matrixVectorMultiplication(trans,cube_vertices[i+1],temp);
 		vectorCopy(temp, vertices[(*v_index)+1]);
-		matrixVectorMultiplication(copy,cube_vertices[i+2],temp);
+		matrixVectorMultiplication(trans,cube_vertices[i+2],temp);
 		vectorCopy(temp, vertices[(*v_index)+2]);
 
 		vec4 t1,t2,t3;
@@ -118,7 +122,7 @@ void init(void)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + sizeof(normals) + sizeof(colors), NULL, GL_STATIC_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
 	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(normals), normals);
-	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors), colors);
+	glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices)+sizeof(normals), sizeof(colors), colors);
 
 	GLuint vPosition = glGetAttribLocation(program, "vPosition");
 	glEnableVertexAttribArray(vPosition);
@@ -130,7 +134,7 @@ void init(void)
 
 	GLuint vColor = glGetAttribLocation(program, "vColor");
 	glEnableVertexAttribArray(vColor);
-	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices));
+	glVertexAttribPointer(vColor, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid *) sizeof(vertices)+sizeof(normals));
 
 	identityMatrix(model_view);
 	vec4 e = {0.0,0.0,4.0,0.0};
@@ -139,12 +143,15 @@ void init(void)
 	lookAt(e,a,vup,model_view);
 
 	identityMatrix(projection);
-	makeVector(-1,1,-1,0,lrb);
-	makeVector(1,-1,-10,0,tnf);
+	vec4 lrb = {-1.0,1.0,-1.0,0.0};
+	vec4 tnf = {1.0,-1.0,-10.0,0.0};
 	frustum(lrb,tnf,projection);
 
 	identityMatrix(ctm);
-
+	int i;
+	for(i=0;i<27;i++)
+		identityMatrix(cube_ctms[i]);
+	
 	model_view_location = glGetUniformLocation(program, "model_view");
 	projection_location = glGetUniformLocation(program, "projection");
 	ctm_location = glGetUniformLocation(program, "ctm");
@@ -171,14 +178,34 @@ void display(void)
 	glUniform1fv(att_const_location, 1, (GLfloat *) &attenuation_constant);
 	glUniform1fv(att_lin_location, 1, (GLfloat *) &attenuation_linear);
 	glUniform1fv(att_quad_location, 1, (GLfloat *) &attenuation_quadratic);
-
-	glUniformMatrix4fv(ctm_location, 1, GL_FALSE, ctm);
-	glDrawArrays(GL_TRIANGLES, 0, num_vertices);
+	int i;
+	for(i =0; i<27; i++){
+		mat4 temp;
+		matrixMultiplication(ctm,cube_ctms[i],temp);
+		glUniformMatrix4fv(ctm_location, 1, GL_FALSE, temp);
+		glDrawArrays(GL_TRIANGLES, i*132, 132);
+	}
 	glutSwapBuffers();
 }
 
 void keyboard(unsigned char key, int mousex, int mousey) {
-	if(key == 'q')
+	if(key == 'r')
+		move = 'r';
+	else if(key == 'u')
+		move = 'u';
+	else if(key == 'f')
+		move = 'f';
+	else if(key == 'l')
+		move = 'l';
+	else if(key == 'd')
+		move ='d';
+	else if(key == 'b')
+		move = 'b';
+	else if(key == 's')
+		move ='s';
+	else if(key == 'a'){
+		solution = solve_rc();
+}	else if(key == 'q')
 		exit(0);
 }
 
@@ -192,6 +219,93 @@ void motion(int x, int y){
 
 void idle(void) {
 	trackIdle(track);
+	if(move == 'r'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateX(-M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[right[i]],copy);
+			matrixCopy(copy, cube_ctms[right[i]]);
+		}
+		r_string_right();
+		rotateSlice(right);
+		updateRight();
+		move = 0;
+	}else if(move == 'u'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateY(-M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[up[i]],copy);
+			matrixCopy(copy, cube_ctms[up[i]]);
+		}
+		r_string_up();
+		rotateSlice(up);
+		updateUp();
+		move = 0;
+	}else if(move == 'f'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateZ(-M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[front[i]],copy);
+			matrixCopy(copy, cube_ctms[front[i]]);
+		}
+		r_string_front();
+		rotateSlice(front);
+		updateFront();
+		move = 0;
+	}else if(move == 'l'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateX(M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[left[i]],copy);
+			matrixCopy(copy, cube_ctms[left[i]]);
+		}
+		r_string_left();
+		rotateSlice(left);
+		updateLeft();
+		move = 0;
+	}else if(move == 'd'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateY(M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[down[i]],copy);
+			matrixCopy(copy, cube_ctms[down[i]]);
+		}
+		r_string_down();
+		rotateSlice(down);
+		updateDown();
+		move = 0;
+	}else if(move == 'b'){
+		int i;
+		for(i=0;i<8;i++){
+			mat4 temp,copy;
+			matrixRotateZ(M_PI/2,temp);
+			matrixMultiplication(temp,cube_ctms[back[i]],copy);
+			matrixCopy(copy, cube_ctms[back[i]]);
+		}
+		r_string_back();
+		rotateSlice(back);
+		updateBack();
+		move = 0;
+	}else{
+		if(solution != NULL){
+			if(sol_count != 0){
+				move = sol_curr;
+				sol_count--;
+				return;
+			}
+			sol_curr = solution[sol_index];
+			sol_count = solution[sol_index]-1;
+			move = sol_curr;
+			sol_index += 2;
+		}
+	}
+
+	glutPostRedisplay();
 }
 
 int main(int argc, char **argv)

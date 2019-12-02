@@ -9,17 +9,17 @@ CP = -Wall
 CFLAGS = -I$(IDIR) -lXi -lXmu -lglut -lGLEW -lGLU -lm -lGL
 
 # header dependencies
-_DEPS = initShader.h matrixOperations.h track.h cube_info.h
+_DEPS = initShader.h matrixOperations.h track.h cube_info.h solve_rc.h cube_state.h
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
 # object files
 ODIR = obj
-_OBJ = initShader.o matrixOperations.o track.o
+_OBJ = initShader.o matrixOperations.o track.o solve_rc.o cube_state.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: rubik
 
-rubik: rubik.c $(OBJ) $(DEPS)
+rubik: rubik.c $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(CP)
 
 $(ODIR)/%.o: %.c $(IDIR)/%.h
