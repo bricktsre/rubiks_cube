@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include "string.h"
 #include "matrixOperations.h"
 #include "track.h"
 #include "cube_info.h"
@@ -43,15 +44,39 @@ vec4 light_position = {0,0,4,1.0};
 
 int num_vertices = 0, animate = 0;;
 GLuint model_view_location, projection_location, ctm_location;
-mat4 model_view, projection, ctm;
+mat4 model_view, projection, ctm, temp_ctm;
 mat4 cube_ctms[27];
 
 int move = 0;
 char *solution = NULL;
-int sol_index = 0, sol_count = 0, sol_curr = 0;
+char scramble[31];
+int sol_index = 31, sol_count = 0, sol_curr = 0;
+GLfloat theta = 0.1, phi = 0.0;
 
 struct trackState temp = {0,{0.0,0.0,0.0,0.0},{1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,1.0},{0.0,0.0,0.0,0.0},0.0,&ctm};
 struct trackState *track = &temp;
+
+void buildScramble(){
+	srand(time(0));
+	int i;
+	for(i = 0 ; i < 30; i++){
+		int b = rand() % 6;
+		if(b == 0)
+			scramble[i] = 'R';
+		else if(b == 1)
+			scramble[i] = 'U';
+		else if(b == 2)
+			scramble[i] = 'F';
+		else if(b == 3)
+			scramble[i] = 'L';
+		else if(b == 4)
+			scramble[i] = 'D';
+		else
+			scramble[i] = 'B';
+		scramble[i+1] = '\0';
+		//fprintf(stderr,"Scramble: %s\n",scramble);
+	}
+}
 
 void makeCube(vec4 *vertices, vec4 *normals, vec4 *colors, vec4 point, int *v_index, int *n_index, int *c_index, int *r_index){
 	int i;
@@ -148,10 +173,11 @@ void init(void)
 	frustum(lrb,tnf,projection);
 
 	identityMatrix(ctm);
+	identityMatrix(temp_ctm);
 	int i;
 	for(i=0;i<27;i++)
 		identityMatrix(cube_ctms[i]);
-	
+
 	model_view_location = glGetUniformLocation(program, "model_view");
 	projection_location = glGetUniformLocation(program, "projection");
 	ctm_location = glGetUniformLocation(program, "ctm");
@@ -201,11 +227,22 @@ void keyboard(unsigned char key, int mousex, int mousey) {
 		move ='d';
 	else if(key == 'b')
 		move = 'b';
-	else if(key == 's')
-		move ='s';
-	else if(key == 'a'){
+	else if(key == 's'){
+		buildScramble();
+		solution = NULL;
+		sol_count = 0;
+		sol_index = 0;
+		sol_curr = 0;
+		move = 0;
+		//fprintf(stderr,"%s\n",scramble);
+	}else if(key == 'a'){
 		solution = solve_rc();
-}	else if(key == 'q')
+		//fprintf(stderr,"%s\n",solution);
+		sol_count = 0;
+		sol_index = 0;
+		sol_curr = 0;
+		move = 0;
+	}else if(key == 'q')
 		exit(0);
 }
 
@@ -219,89 +256,146 @@ void motion(int x, int y){
 
 void idle(void) {
 	trackIdle(track);
+	//if(move != 0) fprintf(stderr,"Current move %c\n",move);
 	if(move == 'r'){
+		theta = -1*fabsf(theta);
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateX(-M_PI/2,temp);
+			matrixRotateX(theta,temp);
 			matrixMultiplication(temp,cube_ctms[right[i]],copy);
 			matrixCopy(copy, cube_ctms[right[i]]);
 		}
-		r_string_right();
-		rotateSlice(right);
-		updateRight();
-		move = 0;
+		if(phi <= -M_PI/2){
+			r_string_right();
+			rotateSlice(right);
+			updateRight();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[right[i]]);
+		}
 	}else if(move == 'u'){
+		theta = -1*fabsf(theta);
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateY(-M_PI/2,temp);
+			matrixRotateY(theta,temp);
 			matrixMultiplication(temp,cube_ctms[up[i]],copy);
 			matrixCopy(copy, cube_ctms[up[i]]);
 		}
-		r_string_up();
-		rotateSlice(up);
-		updateUp();
-		move = 0;
+		if(phi <= -M_PI/2){
+			r_string_up();
+			rotateSlice(up);
+			updateUp();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[up[i]]);
+		}
 	}else if(move == 'f'){
+		theta = -1*fabsf(theta);
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateZ(-M_PI/2,temp);
+			matrixRotateZ(theta,temp);
 			matrixMultiplication(temp,cube_ctms[front[i]],copy);
 			matrixCopy(copy, cube_ctms[front[i]]);
 		}
-		r_string_front();
-		rotateSlice(front);
-		updateFront();
-		move = 0;
+		if(phi <= -M_PI/2){
+			r_string_front();
+			rotateSlice(front);
+			updateFront();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[front[i]]);
+		}
 	}else if(move == 'l'){
+		theta = fabsf(theta);
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateX(M_PI/2,temp);
+			matrixRotateX(theta,temp);
 			matrixMultiplication(temp,cube_ctms[left[i]],copy);
 			matrixCopy(copy, cube_ctms[left[i]]);
 		}
-		r_string_left();
-		rotateSlice(left);
-		updateLeft();
-		move = 0;
+		if(phi >= M_PI/2){
+			r_string_left();
+			rotateSlice(left);
+			updateLeft();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[left[i]]);
+		}
 	}else if(move == 'd'){
+		theta = fabsf(theta);;
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateY(M_PI/2,temp);
+			matrixRotateY(theta,temp);
 			matrixMultiplication(temp,cube_ctms[down[i]],copy);
 			matrixCopy(copy, cube_ctms[down[i]]);
 		}
-		r_string_down();
-		rotateSlice(down);
-		updateDown();
-		move = 0;
+		if(phi >= M_PI/2){
+			r_string_down();
+			rotateSlice(down);
+			updateDown();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[down[i]]);
+		}
 	}else if(move == 'b'){
+		theta = fabsf(theta);
+		phi += theta;
 		int i;
-		for(i=0;i<8;i++){
+		for(i=0;i<9;i++){
 			mat4 temp,copy;
-			matrixRotateZ(M_PI/2,temp);
+			matrixRotateZ(theta,temp);
 			matrixMultiplication(temp,cube_ctms[back[i]],copy);
 			matrixCopy(copy, cube_ctms[back[i]]);
 		}
-		r_string_back();
-		rotateSlice(back);
-		updateBack();
-		move = 0;
+		if(phi >= M_PI/2){
+			r_string_back();
+			rotateSlice(back);
+			updateBack();
+			move = 0;
+			phi = 0.0;
+			for(i=0;i<9;i++)
+				matrixCleanUp(cube_ctms[down[i]]);
+		}
 	}else{
 		if(solution != NULL){
+			//fprintf(stderr,"solution index: %d solution size: %ld\n",sol_index,sizeof(solution)/sizeof(solution[0]));
 			if(sol_count != 0){
 				move = sol_curr;
 				sol_count--;
 				return;
 			}
-			sol_curr = solution[sol_index];
-			sol_count = solution[sol_index]-1;
+			sol_curr = solution[sol_index]+32;
+			sol_count = atoi(&solution[sol_index+1])-1;
 			move = sol_curr;
+			//fprintf(stderr,"New move: %c count: %d\n",move, sol_count);
 			sol_index += 2;
+			if(move != 'r' && move != 'f' && move != 'u' && move != 'l' && move != 'd' && move != 'b'){
+				//fprintf(stderr,"solution string done\n");
+				solution = NULL;
+				move = 0;
+			}
+		}else{
+			if(!(sol_index >= 31)){
+				sol_curr = scramble[sol_index]+32;
+				move = sol_curr;
+				//fprintf(stderr,"New move: %c count: %d\n",move, sol_count+1);
+				sol_index += 1;
+			}
 		}
 	}
 

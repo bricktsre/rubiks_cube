@@ -50,6 +50,8 @@ void matrixVectorMultiplication(mat4 a, vec4 b, vec4 v);
 
 void matrixCopy(mat4 a, mat4 m);
 
+void matrixCleanUp(mat4 m);
+
 void matrixTranslation(GLfloat a, GLfloat b, GLfloat c, mat4 m);
 
 void matrixScale(GLfloat a, GLfloat b, GLfloat c, mat4 m);

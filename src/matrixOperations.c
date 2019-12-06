@@ -255,6 +255,18 @@ void matrixCopy(mat4 a, mat4 m) {
 	m[15] = a[15];
 }
 
+void matrixCleanUp(mat4 m){
+	int i;
+	for(i = 0 ; i < 16 ; i++){
+		if(m[i] < 0.2 && m[i] > -0.2) 
+			m[i] = 0.0;
+		else if(m[i] > 0.8 )
+			m[i] = 1.0;
+		else if(m[i] < -0.8)
+			m[i] = -1.0;
+	}
+}
+
 void matrixTranslation(GLfloat a, GLfloat b, GLfloat c, mat4 m) {
 	m[0] = 1.0;
 	m[1] = 0;
